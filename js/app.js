@@ -2,7 +2,20 @@
  * Create a list that holds all of your cards
  */
 
+//Variable definitions
+let cardsArray = [], shuffledcards, restart;
 
+//Get DOM Elements
+let cards = document.querySelectorAll(".card i");
+cards.forEach(function(card){
+ cardsArray.push(card.className);
+});
+
+restart = document.querySelector(".restart");
+
+//Add event listeners
+restart.addEventListener("click", reset);
+    
 /*
  * Display the cards on the page
  *   - shuffle the list of cards using the provided "shuffle" method below
@@ -12,8 +25,9 @@
 
 // Shuffle function from http://stackoverflow.com/a/2450976
 function shuffle(array) {
+    console.log("array", array);
     var currentIndex = array.length, temporaryValue, randomIndex;
-
+    
     while (currentIndex !== 0) {
         randomIndex = Math.floor(Math.random() * currentIndex);
         currentIndex -= 1;
@@ -21,10 +35,13 @@ function shuffle(array) {
         array[currentIndex] = array[randomIndex];
         array[randomIndex] = temporaryValue;
     }
-
+    console.log("arr", array);
     return array;
 }
 
+function reset(){
+    shuffle(cardsArray);
+}
 
 /*
  * set up the event listener for a card. If a card is clicked:

@@ -3,13 +3,14 @@
  */
 
 //Variable definitions 
-let cardsArray = [], shuffledCards = [], openCards = [], restart, deckClick, moves, openedCardArray = [], count = 0, noOfMatchedCards = 0;
-let openCardClassNameArray = [];
+let cardsArray = [], shuffledCards = [], openCards = [], openedCardArray = [], openCardClassNameArray = [];
+let restart, stars, deckClick, moves, modal, modalSpan, modalMessage, gameTime = 0, gameRating = 3;
+let count = 0, noOfMatchedCards = 0;
 let prevTarget = null;
 
 //Get DOM Elements
 let cards = document.querySelectorAll(".card i"); 
-let cardClass = document.querySelectorAll(".card");console.log("hu", cards);
+let cardClass = document.querySelectorAll(".card");
 cards.forEach(function (card) { 
     cardsArray.push(card.className);
 });
@@ -17,10 +18,19 @@ cards.forEach(function (card) {
 restart = document.querySelector(".restart");
 deckClick = document.querySelector(".deck");
 moves = document.querySelector(".moves");
+stars = document.querySelector(".stars");
+
+modal = document.querySelector(".modal");
+modalRestart = document.querySelector(".modal-restart");
+modalSpan = document.getElementsByClassName("close")[0];
+modalMessage = document.getElementsByTagName("p");
 
 //Add event listeners
 restart.addEventListener("click", reset);
 deckClick.addEventListener("click", startGame);
+
+modalSpan.addEventListener("click", close);
+modalRestart.addEventListener("click", reset);
 
 /*
  * Display the cards on the page
@@ -51,12 +61,20 @@ function reset() {
     cardsArray = shuffle(cardsArray); 
     cards.forEach(function (card) { 
         card.className = cardsArray[i]; 
-        cardClass[i].classList.remove("show", "open", "match");console.log("list", card.classList);
+        cardClass[i].classList.remove("show", "open", "match");
         i++;
     })
 
     //reset global variables
-    noOfMatchedCards = 0, openCardClassNameArray = 0, openedCardArray = 0, count = 0;
+    noOfMatchedCards = 0, openCardClassNameArray = [], openedCardArray = [], count = 0, moves.innerText = 0;
+
+    //reser stars
+    stars.children[2].style.color = "black";
+    stars.children[1].style.color = "black";
+    stars.children[0].style.color = "black";
+
+    //if modal reset clicked, close it
+    modal.style.display = "none";
 }
 
 /*
@@ -69,6 +87,13 @@ function reset() {
  *    + increment the move counter and display it on the page (put this functionality in another function that you call from this one)
  *    + if all cards have matched, display a message with the final score (put this functionality in another function that you call from this one)
  */
+
+ /*
+* close modal
+ */
+function close(){
+    modal.style.display = "none";
+}
 
 /*
  * Displays card image by adding css class "show" & "open" to it's html class property
@@ -97,14 +122,14 @@ function emptyArrays(openCardClassNameArray, openedCardArray){
  * scheduling closing of cards, so cards are shown first
  */
 function waitBeforeClosingCard(openedCardArray){
-    setTimeout(closeOpenedcard, 500, openedCardArray);
+    setTimeout(closeOpenedcard, 300, openedCardArray);
 }
 
 /*
  * scheduling closing of empty of arrays, so cards are shown and closed first
  */
 function waitBeforeEmptyingArrays(openCardClassNameArray, openedCardArray){
-    setTimeout(emptyArrays, 510, openCardClassNameArray, openedCardArray);
+    setTimeout(emptyArrays, 310, openCardClassNameArray, openedCardArray);
 }
 
 /*
@@ -138,16 +163,67 @@ function checkIfCardsAreMatched (openedCardArray){
  * display win message
  */
 function cardsMatched(){
-    alert("You WON!!!!");
+    modalMessage[0].innerHTML = 
+    `<p> YOU WIN!! </p>
+     <p>Time: ${gameTime} Seconds </p>
+     <p>Rating: ${gameRating} Stars </p>`; 
+    modal.style.display = "block";
 }
+
+
+/*
+*disable pointer event when 2 cards have been clicked
+*/
+function disableClickOnOtherCards(){
+    for (i=0; i < cardClass.length; i++){
+        cardClass[i].setAttribute("style","pointer-events: none;");
+    }
+}
+
+/*
+*enable pointer event after 2 cards have been clicked
+*/
+function enableClickOnOtherCards(){
+    for (i=0; i < cardClass.length; i++){
+        cardClass[i].setAttribute("style","pointer-events: auto;");
+    }
+}
+
+/*
+ * scheduling enable of pointer event, AFTER cards are shown and closed first
+ */
+function waitBeforeEnablingPointer(){
+    setTimeout(enableClickOnOtherCards, 320);
+}
+
+/*
+* set gane rating
+*/
+function setGameRating(){
+    if(count == 16){
+        gameRating = 3;
+        stars.children[2].style.color = "white";
+    }
+    else if(count > 16 && count <= 32){
+        gameRating = 2;
+        stars.children[1].style.color = "white";
+    }
+    else if (count > 32){
+        gameRating = 1;
+        stars.children[0].style.color = "white";
+        }
+    }
+
+function incrementGameTime(){
+    gameTime++;
+}   
 
 /*
  *
  */
 function compareCards(openedCard) {
-    console.log(openedCard);
     openedCardArray.push(openedCard);
-    let openCardClass = openedCard.querySelectorAll("i"); console.log("hm", openCardClass);
+    let openCardClass = openedCard.querySelectorAll("i"); 
     let currentOpenCardClassName;
 
     //increment moves counter, but only when an un-matched card is clicked
@@ -168,6 +244,7 @@ function compareCards(openedCard) {
     if( openClickedCardsSize == 2){
         //Check if cards are already matched
         let cardsAlreadyMatched = checkIfCardsAreMatched(openedCardArray);
+        disableClickOnOtherCards();
 
         if(cardsAlreadyMatched){
             return (null);
@@ -184,18 +261,25 @@ function compareCards(openedCard) {
         }
         //empty array
         waitBeforeEmptyingArrays(openCardClassNameArray, openedCardArray);
+        waitBeforeEnablingPointer();
     }
 
     //check if all cards matched
     if( noOfMatchedCards == 8){
         cardsMatched();
     }
+
+    //Set stars
+    setGameRating();
 }
 
 /*
 * Wrapper function to start game - is triggered by first card clicked
 */
 function startGame(event) {
+    //start game time
+    setInterval(incrementGameTime,1000);
+
     let openedCard = event.target; 
     displayOpenedcard(openedCard);
     

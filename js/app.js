@@ -69,7 +69,7 @@ function reset() {
     })
 
     //reset global variables
-    noOfMatchedCards = 0, openCardClassNameArray = [], openedCardArray = [], count = 0, moves.innerText = 0, gameTime = 0, gameRating = 3;
+    noOfMatchedCards = 0, openCardClassNameArray = [], openedCardArray = [], count = 0, moves.innerText = 0, gameTime = 0, gameRating = 3, started = 0;
 
     //reser stars
     stars.children[2].style.color = "black";

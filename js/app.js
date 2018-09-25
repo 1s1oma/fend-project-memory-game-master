@@ -4,7 +4,7 @@
 
 //Variable definitions 
 let cardsArray = [], shuffledCards = [], openCards = [], openedCardArray = [], openCardClassNameArray = [];
-let restart, stars, deckClick, moves, modal, modalSpan, modalMessage, gameTime = 0, gameRating = 3;
+let restart, stars, deckClick, moves, modal, modalSpan, modalMessage, gameTime = 0, gameRating = 3, started = 0;
 let count = 0, noOfMatchedCards = 0;
 let prevTarget = null;
 
@@ -31,6 +31,9 @@ deckClick.addEventListener("click", startGame);
 
 modalSpan.addEventListener("click", close);
 modalRestart.addEventListener("click", reset);
+
+//start game time
+setInterval(incrementGameTime,1000);
 
 /*
  * Display the cards on the page
@@ -66,7 +69,7 @@ function reset() {
     })
 
     //reset global variables
-    noOfMatchedCards = 0, openCardClassNameArray = [], openedCardArray = [], count = 0, moves.innerText = 0;
+    noOfMatchedCards = 0, openCardClassNameArray = [], openedCardArray = [], count = 0, moves.innerText = 0, gameTime = 0, gameRating = 3;
 
     //reser stars
     stars.children[2].style.color = "black";
@@ -160,12 +163,39 @@ function checkIfCardsAreMatched (openedCardArray){
 }
 
 /*
+ * get game time as string
+ * logic source - http://www.psychocodes.in/c-program-to-convert-seconds-into-hours-minutes-and-seconds.html
+ */
+function getTime(){
+    let hours = 0, mins = 0, secs = 0;
+
+    if(gameTime > 3600){
+		mins = gameTime /60;
+		secs = gameTime %60;
+		hours = mins/60;
+		mins = mins%60;
+	}
+	else{
+		mins = gameTime /60;
+		secs = gameTime %60;
+    }
+    hours = parseInt(hours);
+    mins = parseInt(mins);
+    secs = parseInt(secs);
+
+    let stringGameTime = hours +"h "+ mins+"m "+secs +"s";
+    return stringGameTime;
+}
+
+/*
  * display win message
  */
 function cardsMatched(){
+    let displayedGameTime = getTime();
+
     modalMessage[0].innerHTML = 
     `<p> YOU WIN!! </p>
-     <p>Time: ${gameTime} Seconds </p>
+     <p>Time: ${displayedGameTime} </p>
      <p>Rating: ${gameRating} Stars </p>`; 
     modal.style.display = "block";
 }
@@ -208,14 +238,12 @@ function setGameRating(){
         gameRating = 2;
         stars.children[1].style.color = "white";
     }
-    else if (count > 32){
-        gameRating = 1;
-        stars.children[0].style.color = "white";
-        }
     }
 
 function incrementGameTime(){
+    if (started == 1){
     gameTime++;
+    }
 }   
 
 /*
@@ -265,7 +293,7 @@ function compareCards(openedCard) {
     }
 
     //check if all cards matched
-    if( noOfMatchedCards == 8){
+    if( noOfMatchedCards == 2){
         cardsMatched();
     }
 
@@ -277,14 +305,18 @@ function compareCards(openedCard) {
 * Wrapper function to start game - is triggered by first card clicked
 */
 function startGame(event) {
-    //start game time
-    setInterval(incrementGameTime,1000);
+started =1;
 
     let openedCard = event.target; 
     displayOpenedcard(openedCard);
     
     //Checking if same card was clicked twice
-    if (event.target == prevTarget){ return (null); }
+    if (event.target == prevTarget){ 
+        event.target.classList.remove("show", "open");
+        emptyArrays(openCardClassNameArray, openedCardArray)
+        return (null); 
+    }
+
     prevTarget = event.target;
 
     compareCards(openedCard);

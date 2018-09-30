@@ -11,6 +11,7 @@ let prevTarget = null;
 //Get DOM Elements
 let cards = document.querySelectorAll(".card i"); 
 let cardClass = document.querySelectorAll(".card");
+let deckClass = document.querySelectorAll(".deck");
 cards.forEach(function (card) { 
     cardsArray.push(card.className);
 });
@@ -69,7 +70,7 @@ function reset() {
     })
 
     //reset global variables
-    noOfMatchedCards = 0, openCardClassNameArray = [], openedCardArray = [], count = 0, moves.innerText = 0, gameTime = 0, gameRating = 3;
+    noOfMatchedCards = 0, openCardClassNameArray = [], openedCardArray = [], count = 0, moves.innerText = 0, gameTime = 0, gameRating = 3, started = 0;
 
     //reser stars
     stars.children[2].style.color = "black";
@@ -220,6 +221,14 @@ function enableClickOnOtherCards(){
 }
 
 /*
+*prevent duplicate click on same card
+*/
+function preventDuplicateClickonSameCard(clickedCard){
+    clickedCard.setAttribute("style","pointer-events: none;");
+}
+
+
+/*
  * scheduling enable of pointer event, AFTER cards are shown and closed first
  */
 function waitBeforeEnablingPointer(){
@@ -293,7 +302,7 @@ function compareCards(openedCard) {
     }
 
     //check if all cards matched
-    if( noOfMatchedCards == 2){
+    if( noOfMatchedCards == 8){
         cardsMatched();
     }
 
@@ -305,19 +314,23 @@ function compareCards(openedCard) {
 * Wrapper function to start game - is triggered by first card clicked
 */
 function startGame(event) {
-started =1;
-
+    started =1;
     let openedCard = event.target; 
-    displayOpenedcard(openedCard);
-    
-    //Checking if same card was clicked twice
-    if (event.target == prevTarget){ 
-        event.target.classList.remove("show", "open");
-        emptyArrays(openCardClassNameArray, openedCardArray)
-        return (null); 
+
+    //The deck is only selected when pointer events have disabled on a card due to duplicate clicks. 
+    //This is to prevent any opeartions on the whole deck
+    if(openedCard.classList.contains("deck") ||openedCard.classList.contains("fa")){
+        return (null);
     }
 
-    prevTarget = event.target;
+    displayOpenedcard(openedCard);
 
+    //Checking if same card was clicked twice
+    if (event.target == prevTarget){ 
+        preventDuplicateClickonSameCard(openedCard);
+        return (null); 
+    }
+    prevTarget = event.target;
+    
     compareCards(openedCard);
 }
